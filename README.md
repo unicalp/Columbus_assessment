@@ -32,3 +32,11 @@ The Lambda function has been publicly exposed via an AWS Function URL. It accept
   "unit": "Celsius",
   "category": "Mild"
 }
+
+## Task 4: Design Reflection
+
+**How the current design supports or limits adding a new weather provider:**
+Our current object-oriented design heavily supports this change through the separation of concerns. By isolating the external API communication into its own class (`OpenMeteoClient`), the business logic (`TemperatureCategorizer`) and the core orchestrator (`lambda_handler`) remain completely independent of *how* the weather data is fetched. If a new provider is added, the temperature categorization rules will not need to change. However, the current design is slightly limited by tight coupling in the `lambda_handler`, as it directly instantiates `OpenMeteoClient()`. 
+
+**What could be improved with more time:**
+If I had more time, I would introduce an Interface or Abstract Base Class (e.g., `WeatherProvider`) that defines a standard `get_current_temperature(city)` method. Both `OpenMeteoClient` and any future provider (like `AccuWeatherClient`) would implement this interface. Furthermore, I would use Dependency Injection to pass the desired provider into the handler based on an environment variable. This would allow us to switch weather providers entirely through AWS configuration without touching or deploying new code.
