@@ -59,11 +59,15 @@ class TemperatureCategorizer:
 def lambda_handler(event, context):
     """
     AWS Lambda entry point. 
-    Now accepts a city name from the event payload.
+    Now supports both direct invocation and HTTP GET requests.
     """
-    # Extract city from the event input, default to Wrocław if empty
-    city = event.get("city", "Wrocław")
+    city = "Wrocław" 
     
+    if event.get("queryStringParameters") and "city" in event["queryStringParameters"]:
+        city = event["queryStringParameters"]["city"]
+    elif event.get("city"):
+        city = event["city"]
+        
     weather_client = OpenMeteoClient()
     categorizer = TemperatureCategorizer()
 
@@ -80,6 +84,9 @@ def lambda_handler(event, context):
         # Step 4: Return structured JSON
         return {
             "statusCode": 200,
+            "headers": {
+                "Content-Type": "application/json"
+            },
             "body": json.dumps({
                 "city": resolved_city_name,
                 "temperature": current_temp,
@@ -89,7 +96,6 @@ def lambda_handler(event, context):
         }
         
     except ValueError as ve:
-        # Handle cases where the city is not found
         return {"statusCode": 404, "body": json.dumps({"error": str(ve)})}
     except Exception as e:
         return {"statusCode": 500, "body": json.dumps({"error": str(e)})}
